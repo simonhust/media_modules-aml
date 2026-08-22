@@ -446,6 +446,8 @@ static u32 skip_nal_count = 500;
 bit 0, fast output first I picture
 */
 static u32 fast_output_enable = 1;
+static u32 force_video_signal_type;
+static u32 force_video_signal_type_enable;
 
 static u32 frmbase_cont_bitlevel = 0;//0x60;
 static u32 frmbase_multi_slice = 1;
@@ -9441,7 +9443,9 @@ static void set_frame_info(struct hevc_state_s *hevc, struct vframe_s *vf,
 			p += size;
 		}
 	}
-	if (hevc->video_signal_type & VIDEO_SIGNAL_TYPE_AVAILABLE_MASK) {
+	if (force_video_signal_type_enable && force_video_signal_type) {
+		vf->signal_type = force_video_signal_type;
+	} else if (hevc->video_signal_type & VIDEO_SIGNAL_TYPE_AVAILABLE_MASK) {
 		vf->signal_type = pic->video_signal_type;
 
 		vf->ext_signal_type = 0;
@@ -16766,6 +16770,13 @@ MODULE_PARM_DESC(i_only_flag, "\n amvdec_h265 i_only_flag\n");
 
 module_param(fast_output_enable, uint, 0664);
 MODULE_PARM_DESC(fast_output_enable, "\n amvdec_h265 fast_output_enable\n");
+
+module_param(force_video_signal_type, uint, 0664);
+MODULE_PARM_DESC(force_video_signal_type,
+	"\n amvdec_h265 force_video_signal_type\n");
+module_param(force_video_signal_type_enable, uint, 0664);
+MODULE_PARM_DESC(force_video_signal_type_enable,
+	"\n amvdec_h265 force_video_signal_type_enable\n");
 
 module_param(error_handle_policy, uint, 0664);
 MODULE_PARM_DESC(error_handle_policy, "\n amvdec_h265 error_handle_policy\n");
