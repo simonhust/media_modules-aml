@@ -1868,6 +1868,7 @@ struct hevc_state_s {
 	int fatal_error;
 
 	u32 sei_hdr10_flag;
+	u32 cuva_sei_flag;
 	void *frame_mmu_map_addr;
 	dma_addr_t frame_mmu_map_phy_addr;
 	unsigned int mmu_mc_buf_start;
@@ -2832,6 +2833,7 @@ static void hevc_init_stru(struct hevc_state_s *hevc,
 	hevc->pre_bot_pic = NULL;
 
 	hevc->sei_hdr10_flag = 0;
+	hevc->cuva_sei_flag = 0;
 	hevc->valve_count = 0;
 	hevc->first_pic_flag = 0;
 #ifdef MULTI_INSTANCE_SUPPORT
@@ -8957,6 +8959,7 @@ static int parse_sei(struct hevc_state_s *hevc,
 					&& p_sei[3] == 0x00
 					&& p_sei[4] == 0x05) {
 					pic->sei_present_flag |= SEI_HDR_CUVA_MASK;
+					hevc->cuva_sei_flag = 1;
 
 					if (get_dbg_flag(hevc) & H265_DEBUG_PRINT_SEI) {
 						PR_INIT(128);
@@ -9280,7 +9283,7 @@ static void set_frame_info(struct hevc_state_s *hevc, struct vframe_s *vf,
 			vf->signal_type = data;
 		}
 
-		if (pic->sei_present_flag & SEI_HDR_CUVA_MASK) {
+		if ((pic->sei_present_flag | hevc->cuva_sei_flag) & SEI_HDR_CUVA_MASK) {
 			u32 data;
 			data = vf->signal_type;
 			data = data & 0x7FFFFFFF;
@@ -13914,6 +13917,7 @@ static int vh265_local_init(struct hevc_state_s *hevc)
 		hevc->i_only = 0x0;
 	hevc->error_watchdog_count = 0;
 	hevc->sei_hdr10_flag = 0;
+	hevc->cuva_sei_flag = 0;
 	if (vdec->sys_info)
 		pts_unstable = ((unsigned long)vdec->sys_info->param & 0x40) >> 6;
 	hevc_print(hevc, 0,
